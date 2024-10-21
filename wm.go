@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"wm/config"
+	"wm/core/args"
 )
-
-type Config struct {
-	Data string `json:"data"`
-}
 
 func main() {
 
@@ -22,87 +20,34 @@ func argumentsCheck() bool {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "help":
-			fmt.Print("Usage: " + os.Args[0] + " [command]\n\n" + "Commands:\n" + "help - Show help\n" + "set <options> - Set the file path\n" + "check <otions> - Check the file path\n")
+			args.Help()
 		case "ls":
-			dir, err := os.Getwd()
-			if err != nil {
-				fmt.Println(err)
-				return false
-			}
-			entries, err := os.ReadDir(dir)
-			if err != nil {
-				fmt.Println(err)
-				return false
-			}
-			for _, entry := range entries {
-				fmt.Println(entry.Name())
-			}
-		case "set":
-			if len(os.Args) > 3 {
-				switch os.Args[2] {
-				case "data":
-					file, err := os.ReadFile("config.json")
-					if err != nil {
-						fmt.Println(err)
-						return false
-					}
-					data := Config{}
-					json.Unmarshal(file, &data)
-					if err != nil {
-						fmt.Println("Failed to parse JSON:", err)
-						return false
-					}
-					data.Data = os.Args[3]
-
-					jsonBytes, err := json.MarshalIndent(data, "", "    ")
-					if err != nil {
-						fmt.Println("Failed to marshal JSON:", err)
-						return false
-					}
-
-					jsonStr := string(jsonBytes)
-
-					err = os.WriteFile("config.json", []byte(jsonStr), 0644)
-					if err != nil {
-						fmt.Println("Failed to write to config.json:", err)
-						return false
-					}
-					return true
-
-				default:
-					fmt.Print("Usage: " + os.Args[0] + " set <options> <path>\n")
-				}
-
-			} else {
-				fmt.Print("Usage: " + os.Args[0] + " set <options> <path>\n")
-				return true
-			}
+			args.Ls()
 		case "check":
 			if len(os.Args) > 2 {
 				switch os.Args[2] {
 				case "data":
-					file, err := os.ReadFile("config.json")
-					if err != nil {
-						fmt.Println(err)
-						return false
-					}
-					data := Config{}
-					json.Unmarshal(file, &data)
-					if err != nil {
-						fmt.Println("Failed to parse JSON:", err)
-						return false
-					}
-					fmt.Println(data.Data)
-					return true
+					args.Check()
 				}
 			} else {
-				fmt.Print("Usage: " + os.Args[0] + " check <options>\n")
+				args.ErrorHelp(args.CheckError)
 				return true
 			}
 
+		case "set":
+			if len(os.Args) > 3 {
+				switch os.Args[2] {
+				case "data":
+
+					args.Set(os.Args[3])
+				default:
+					args.ErrorHelp(args.SetError)
+				}
+			}
 		}
+
 	} else {
-		fmt.Print("Usage: " + os.Args[0] + "help\n")
+		args.ErrorHelp(args.NormalError)
 		return true
 	}
 	return false
@@ -111,7 +56,7 @@ func argumentsCheck() bool {
 func existCheck() bool {
 	_, err := os.ReadFile("config.json")
 	if os.IsNotExist(err) {
-		defaultConfig := Config{
+		defaultConfig := config.JConfig{
 			Data: "Data/data.json",
 		}
 
