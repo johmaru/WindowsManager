@@ -23,7 +23,20 @@ func argumentsCheck() bool {
 		switch os.Args[1] {
 		case "help":
 			fmt.Print("Usage: " + os.Args[0] + " [command]\n\n" + "Commands:\n" + "help - Show help\n" + "set <options> - Set the file path\n" + "check <otions> - Check the file path\n")
-
+		case "ls":
+			dir, err := os.Getwd()
+			if err != nil {
+				fmt.Println(err)
+				return false
+			}
+			entries, err := os.ReadDir(dir)
+			if err != nil {
+				fmt.Println(err)
+				return false
+			}
+			for _, entry := range entries {
+				fmt.Println(entry.Name())
+			}
 		case "set":
 			if len(os.Args) > 3 {
 				switch os.Args[2] {
