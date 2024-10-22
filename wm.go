@@ -44,6 +44,36 @@ func argumentsCheck() bool {
 					args.ErrorHelp(args.SetError)
 				}
 			}
+
+		case "list":
+			if len(os.Args) > 2 {
+				switch os.Args[2] {
+				case "options":
+					if len(os.Args) > 3 {
+						switch os.Args[3] {
+						case "help":
+							args.HelpList()
+
+						case "set":
+							args.SetList()
+
+						case "check":
+							args.CheckList()
+
+						case "ls":
+							args.LsList()
+
+						case "list":
+							args.List()
+						}
+					}
+				default:
+					args.ErrorHelp(args.ListError)
+				}
+
+			} else {
+				args.ErrorHelp(args.ListError)
+			}
 		}
 
 	} else {

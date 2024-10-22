@@ -3,6 +3,7 @@ package args
 import (
 	"fmt"
 	"os"
+	"text/tabwriter"
 )
 
 func Ls() bool {
@@ -16,8 +17,14 @@ func Ls() bool {
 		fmt.Println(err)
 		return false
 	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.Debug)
+
 	for _, entry := range entries {
-		fmt.Println(entry.Name())
+		fmt.Fprint(w, entry.Name(), "\t")
 	}
+	fmt.Fprintln(w)
+	w.Flush()
+
 	return true
 }
