@@ -12,6 +12,7 @@ const (
 	CheckError
 	NormalError
 	ListError
+	AddError
 )
 
 func Help() bool {
