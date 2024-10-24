@@ -14,7 +14,7 @@ func Set(path string) bool {
 		return false
 	}
 	data := config.JConfig{}
-	json.Unmarshal(file, &data)
+	err = json.Unmarshal(file, &data)
 	if err != nil {
 		fmt.Println("Failed to parse JSON:", err)
 		return false

@@ -31,11 +31,18 @@ Path:
 }
 
 func CheckList() bool {
-	_, err := fmt.Print(`Example : wm check <FirstOption>
+	_, err := fmt.Print(`Example : wm check <FirstOption> <SecondOption>
 	
 FirstOption:
 						 
-	-	data - Check the data file path` + "\n")
+	-	data - Check the data file path
+	
+	-  path - Check the path of the data file 
+
+SecondOption:
+
+	-  your choice name(name is your chioice name by add command) - Check the data file path
+	` + "\n")
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -45,6 +52,21 @@ FirstOption:
 
 func LsList() bool {
 	_, err := fmt.Print(`Not exist a Options to ls command` + "\n")
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
+}
+
+func AddList() bool {
+	_, err := fmt.Print(`Example : wm add <mode> <your choice name> <Path>
+	
+Mode:
+
+	-	ap - Add a new application(now only support exe files)
+
+	` + "\n")
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -71,6 +93,8 @@ Command:
 	-   list - List the list command options
 
 	-   help - List the help command options
+
+	-   add - List the add command options
 
 	`)
 	if err != nil {

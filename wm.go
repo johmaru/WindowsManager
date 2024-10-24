@@ -10,15 +10,18 @@ import (
 
 func main() {
 
-	argumentsCheck()
+	if !argumentsCheck() {
+		fmt.Println("Initialization failed.")
+		os.Exit(1)
+	}
+	if !ExistCheck() {
+		fmt.Println("Initialization failed.")
+		os.Exit(1)
+	}
 
 }
 
 func argumentsCheck() bool {
-	err := existCheck()
-	if !err {
-		return false
-	}
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "help":
@@ -30,6 +33,13 @@ func argumentsCheck() bool {
 				switch os.Args[2] {
 				case "data":
 					args.Check()
+
+				case "path":
+					if len(os.Args) > 3 {
+						args.PathCheck(os.Args[3])
+					} else {
+						args.ErrorHelp(args.CheckError)
+					}
 				}
 			} else {
 				args.ErrorHelp(args.CheckError)
@@ -67,6 +77,9 @@ func argumentsCheck() bool {
 
 						case "list":
 							args.List()
+
+						case "add":
+							args.AddList()
 						}
 					}
 				default:
@@ -97,19 +110,20 @@ func argumentsCheck() bool {
 		args.ErrorHelp(args.NormalError)
 		return true
 	}
-	return false
+	return true
 }
 
-func existCheck() bool {
-	_, err := os.ReadFile("config.json")
+func ExistCheck() bool {
+	// config.json exists check
+	_, err := os.Stat("config.json")
 	if os.IsNotExist(err) {
 		defaultConfig := config.JConfig{
-			Data: "Data/data.json",
+			Data: "Data",
 		}
 
 		file, err := os.Create("config.json")
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Failed to create config.json:", err)
 			return false
 		}
 		defer file.Close()
@@ -117,23 +131,42 @@ func existCheck() bool {
 		encoder.SetIndent("", "    ")
 		err = encoder.Encode(defaultConfig)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Failed to write to config.json:", err)
 			return false
 		}
-		return true
-	} else if err != nil {
+	}
+
+	file, err := os.ReadFile("config.json")
+	if err != nil {
+		fmt.Println("Failed to read config.json:", err)
 		return false
 	}
-	_, err = os.ReadDir("Data")
+
+	data := config.JConfig{}
+	err = json.Unmarshal(file, &data)
+	if err != nil {
+		fmt.Println("Failed to parse config.json:", err)
+		return false
+	}
+
+	dataDirPath := data.Data
+	// Data directory exists check
+	_, err = os.Stat(dataDirPath)
 	if os.IsNotExist(err) {
-		err = os.Mkdir("Data", 0755)
+		err = os.Mkdir(dataDirPath, 0755)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Failed to create Data directory:", err)
 			return false
 		}
-		file, err := os.Create("Data/data.json")
+	}
+
+	// Data/data.json exists check
+	dataFilePath := dataDirPath + "/data.json"
+	_, err = os.Stat(dataFilePath)
+	if os.IsNotExist(err) {
+		file, err := os.Create(dataFilePath)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Failed to create data.json:", err)
 			return false
 		}
 		defer file.Close()
@@ -141,57 +174,9 @@ func existCheck() bool {
 		encoder.SetIndent("", "    ")
 		err = encoder.Encode(map[string]interface{}{})
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("ExistCheckScope:Failed to write to data.json:", err)
 			return false
 		}
-		return true
-	} else if err != nil {
-		return false
-	}
-
-	file, err := os.ReadFile("config.json")
-	if err != nil {
-		fmt.Println(err)
-		return false
-	}
-	data := config.JConfig{}
-	err = json.Unmarshal(file, &data)
-	if err != nil {
-		fmt.Println("Failed to parse JSON:", err)
-		return false
-	}
-	_, err = os.ReadFile(data.Data)
-	if os.IsNotExist(err) {
-		file, err := os.Create(data.Data)
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		defer file.Close()
-		msg, err := os.ReadFile("Data/data.json")
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		if msg == nil {
-			return false
-		}
-		file, err = os.Create(data.Data)
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		defer file.Close()
-		encoder := json.NewEncoder(file)
-		encoder.SetIndent("", "    ")
-		err = encoder.Encode(msg)
-		if err != nil {
-			fmt.Println(err)
-			return false
-		}
-		return true
-	} else if err != nil {
-		return false
 	}
 
 	return true
